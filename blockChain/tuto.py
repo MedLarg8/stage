@@ -68,7 +68,7 @@ class Block:
 class Client:
     def __init__(self,username,password,image,balance=0):
         random = Cryptodome.Random.new().read  #creation random byte
-        self._private_key = RSA.generate(1024, random)  #private key = rsa de 2048 bites a partir de random  (2048 est le longuer minimum)
+        self._private_key = RSA.generate(1024, random)  #private key = rsa de 2048 bites a partir de random  (2048 est le longuer minimum #nvm 2048 raises exceptions idk why)
         self._public_key = self._private_key.publickey()  #creattion de cle public a partir du cle prive
         self._signer = PKCS1_v1_5.new(self._private_key) #signer le cle prive
         self.username = username
@@ -260,5 +260,7 @@ if __name__ =='__main__':
     pass_transactions(transactions,tp_coins)
     pass_transactions(transactions2,tp_coins)
     dump_blockchain(tp_coins)
+
+
 
     
