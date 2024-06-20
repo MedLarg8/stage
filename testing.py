@@ -26,7 +26,7 @@ def create_database_client(client):
     print("asserting instance")
     assert isinstance(client, Client) 
     username, password, image, date, empreinte, public_key, private_key, balance = client.username, client.password, client.image, client.date, client.empreinte, client._public_key, client._private_key, client._balance
-    
+    identity = client.identity
     cur = mysql.connection.cursor()
     
     # Check if the username already exists
@@ -41,9 +41,9 @@ def create_database_client(client):
         print(f"User '{username}' already exists. No action taken.")
     else:
         # Insert the new client
-        cur.execute("""INSERT INTO user (username, password, image, date, empreinte, `public-key`, `private-key`, balance) 
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (username, password, image, date, empreinte, public_key, private_key, balance))
+        cur.execute("""INSERT INTO user (username, password, image, date, empreinte, `public-key`, `private-key`, identity, balance) 
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (username, password, image, date, empreinte, public_key, private_key,identity, balance))
         mysql.connection.commit()
         print(f"User '{username}' created successfully.")
     
@@ -63,7 +63,7 @@ def create_database_transaction(transaction):#this function creates the transact
 
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO transactions(sender, recepient, value, time, signature) VALUES (%s,%s,%s,%s,%s)",
-                    (sender, recepient, value, time, signature))
+                    (sender.aux_identity, recepient.aux_identity, value, time, signature))
         
         cur.execute("UPDATE user SET balance = balance - %s WHERE username = %s",(value,sender_username))
         cur.execute("UPDATE user SET balance = balance + %s WHERE username = %s",(value,recepient_username))
@@ -215,13 +215,15 @@ def get_client_by_username(username):
     empreinte = resultat[5]
     public_key = resultat[6]
     private_key = resultat[7]
-    balance = resultat[8]
+    aux_identity = resultat[8]
+    balance = resultat[9]
     password = password.encode('utf-8')
     client = Client(username,password,image,balance)
     client._private_key = private_key
     client._public_key = public_key
     client.date = date
     client.empreinte = empreinte
+    client.aux_identity = aux_identity
     return client
     
 
@@ -230,9 +232,9 @@ def get_client_by_username(username):
 if __name__ == "__main__":
     with app.app_context():
         Dinesh = Client("dinesh",b"123456","image",900)
-        #create_database_client(Dinesh)
+        create_database_client(Dinesh)
         Ramesh = Client("ramesh",b"123456","image",800)
-        #create_database_client(Ramesh)
+        create_database_client(Ramesh)
         transaction1 = Transaction(Dinesh, Ramesh,100)
         create_database_transaction(transaction1)
         print("transaction created")

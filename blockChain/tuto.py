@@ -77,6 +77,7 @@ class Client:
         self.date = datetime.datetime.now()
         self.empreinte = empreinte_functions.create_empreinte(username,self.password,self.date,LIST_ALGO)
         self._balance = balance
+        self.aux_identity = self.identity
 
 
     @property
