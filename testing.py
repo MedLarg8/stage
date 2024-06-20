@@ -21,18 +21,33 @@ mysql = MySQL(app)
 
 
 
-def create_Database_Transaction(transaction):
-    assert isinstance(transaction,Transaction)
-    sender = transaction.sender
-    recepient = transaction.recepient
-    value = transaction.value
-    date = transaction.date
-    signature = transaction.signature
+def create_database_client(client):
+    print("asserting instance")
+    assert isinstance(client, Client) 
+    username, password, image, date, empreinte, public_key, private_key, balance = client.username, client.password, client.image, client.date, client.empreinte, client._public_key, client._private_key, client._balance
+    
     cur = mysql.connection.cursor()
-    cur.execute("INSERT INTO transactions (sender,recepient,value,date,signature) VALUES(%s,%s,%i,%d,%s)",
-                (sender,recepient,value,date,signature))
-    mysql.connection.commit()
+    
+    # Check if the username already exists
+    cur.execute("SELECT 1 FROM user WHERE username = %s", (username))
+    print("cursor created")
+    result = cur.fetchone()
+    print("fetched")
+    print("result = ",result)
+    
+    if result:
+        # Username already exists, do nothing
+        print(f"User '{username}' already exists. No action taken.")
+    else:
+        # Insert the new client
+        cur.execute("""INSERT INTO user (username, password, image, date, empreinte, `public-key`, `private-key`, balance) 
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (username, password, image, date, empreinte, public_key, private_key, balance))
+        mysql.connection.commit()
+        print(f"User '{username}' created successfully.")
+    
     cur.close()
+
     
 
 def create_database_client(client):
@@ -44,6 +59,16 @@ def create_database_client(client):
     mysql.connection.commit()
     cur.close()
 
+def update_database_client_balance(client):
+    assert isinstance(client,Client)
+    empreinte, balance  = client.empreinte, client._balance
+    cur = mysql.connection.cursor()
+    cur.execute("UPDATE user SET (balance) VALUES (%s) WHERE empreiente = %s",
+                (balance,empreinte))
+    mysql.connection.commit()
+    cur.close()
+
+
 
 def execute_transaction(transaction):
     assert isinstance(transaction, Transaction)
@@ -51,6 +76,10 @@ def execute_transaction(transaction):
     sender = transaction.sender
     recepient = transaction.recipient
     value = transaction.value
+
+
+
+
 
 
 
@@ -117,7 +146,11 @@ def pass_transaction(transactions):
 
 if __name__ == "__main__":
     with app.app_context():
-        med = Client("med",b"123456","image",1200)
-        create_database_client(med)
-        print("succes")
+        Dinesh = Client("dinesh",b"123456","image",900)
+        create_database_client(Dinesh)
+        Ramesh = Client("ramesh",b"123456","image",800)
+        create_database_client(Ramesh)
+        transaction1 = Transaction(Dinesh, Ramesh,100)
+        print("transaction created")
+
     

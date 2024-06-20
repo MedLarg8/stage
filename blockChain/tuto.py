@@ -222,10 +222,10 @@ def pass_transactions(transactions,blockchain):
 if __name__ =='__main__':
     
 
-    Dinesh = Client(900)
-    Ramesh = Client(800)
-    Seema = Client(300)
-    Vijay = Client(500)
+    Dinesh = Client("dinesh",b"123456","image",900)
+    Ramesh = Client("ramesh",b"123456","image",800)
+    Seema = Client("seema",b"123456","image",300)
+    Vijay = Client("vijay",b"123456","image",500)
 
     transactions = [
     Transaction(Dinesh, Ramesh, 15.0),
