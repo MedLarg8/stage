@@ -66,11 +66,16 @@ class Block:
 
 
 class Client:
-    def __init__(self,balance=0):
+    def __init__(self,username,password,image,balance=0):
         random = Cryptodome.Random.new().read  #creation random byte
         self._private_key = RSA.generate(1024, random)  #private key = rsa de 2048 bites a partir de random  (2048 est le longuer minimum)
         self._public_key = self._private_key.publickey()  #creattion de cle public a partir du cle prive
         self._signer = PKCS1_v1_5.new(self._private_key) #signer le cle prive
+        self.username = username
+        self.password = hashlib.sha1(password).hexdigest()
+        self.image = image
+        self.date = datetime.datetime.now()
+        self.empreinte = empreinte_functions.create_empreinte(username,self.password,self.date,LIST_ALGO)
         self._balance = balance
 
 
@@ -78,15 +83,6 @@ class Client:
     def identity(self):
         return binascii.hexlify(self._public_key.exportKey(format='DER')).decode('ascii')#identite de client a partir de cle public
     
-
-class ClientInfo:
-
-    def __init__(self,username,password,image):
-        self.username = username
-        self.password = hashlib.sha1(password).hexdigest()
-        self.image = image
-        self.date = datetime.datetime.now()
-        self.empreinte = empreinte_functions.create_empreinte(username,self.password,self.date,LIST_ALGO)
 
 class Transaction:
     def __init__(self, sender, recipient, value):

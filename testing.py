@@ -1,4 +1,4 @@
-from blockChain.tuto import Client, ClientInfo, Transaction, Block, mine, verify_signature, check_balance
+from blockChain.tuto import Client, Transaction, Block, mine, verify_signature, check_balance
 from flask import Flask
 from flask_mysqldb import MySQL
 import datetime
@@ -35,10 +35,9 @@ def create_Database_Transaction(transaction):
     cur.close()
     
 
-def create_database_client(client,client_info):
+def create_database_client(client):
     assert isinstance(client,Client) 
-    assert isinstance(client_info, ClientInfo)
-    username, password, image, date, empreinte, public_key, private_key, balance  = client_info.username, client_info.password, client_info.image, client_info.date, client_info.empreinte, client._public_key, client._private_key, client._balance
+    username, password, image, date, empreinte, public_key, private_key, balance  = client.username, client.password, client.image, client.date, client.empreinte, client._public_key, client._private_key, client._balance
     cur = mysql.connection.cursor()
     cur.execute("INSERT INTO user (username, password,image, date, empreinte, `public-key`, `private-key`, balance) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                 (username, password, image, date, empreinte, public_key, private_key, balance))
@@ -53,7 +52,7 @@ def execute_transaction(transaction):
     recepient = transaction.recipient
     value = transaction.value
 
-    
+
 
 
 def pass_transaction(transactions):
@@ -118,11 +117,7 @@ def pass_transaction(transactions):
 
 if __name__ == "__main__":
     with app.app_context():
-        #Med = Client(5000)
-        #Med_info = ClientInfo("mohamed", b"123456", "image")
-        #print("************")
-        #create_database_client(Med, Med_info)
-        #print("************")
-        pass
-    pass
+        med = Client("med",b"123456","image",1200)
+        create_database_client(med)
+        print("succes")
     
