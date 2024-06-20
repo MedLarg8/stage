@@ -18,10 +18,14 @@ from Cryptodome.PublicKey import RSA
 from Cryptodome.Signature import PKCS1_v1_5
 from hashlib import sha256
 
+from empreinte_digitale import empreinte_functions
+
+
 tp_coins=[]
 LAST_BLOCK_HASH = ""
 LAST_TRANSACTION_INDEX = 0
 ALL_TRANSACTIONS = []
+LIST_ALGO = empreinte_functions.LIST_OF_ALGORITHMS
 
 
 def dump_blockchain(self):#affichage de blockchain
@@ -59,7 +63,7 @@ class Block:
         return True
 
     
-    
+
 
 class Client:
     def __init__(self,balance=0):
@@ -74,6 +78,15 @@ class Client:
     def identity(self):
         return binascii.hexlify(self._public_key.exportKey(format='DER')).decode('ascii')#identite de client a partir de cle public
     
+
+class ClientInfo:
+
+    def __init__(self,username,password,image):
+        self.username = username
+        self.password = hashlib.sha1(password).hexdigest()
+        self.image = image
+        self.date = datetime.datetime.now()
+        self.empreinte = empreinte_functions.create_empreinte(username,self.password,self.date,LIST_ALGO)
 
 class Transaction:
     def __init__(self, sender, recipient, value):

@@ -9,7 +9,7 @@ import os
 import uuid  # for generating unique IDs
 from werkzeug.utils import secure_filename
 
-UPLOAD_FOLDER = "C:/Users/MSI/Desktop/stage etc/static"
+UPLOAD_FOLDER = "static"
 
 
 app = Flask(__name__)
@@ -19,7 +19,7 @@ app.secret_key = 'secret-key'
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'stage_facial_regonition'  
+app.config['MYSQL_DB'] = 'stage_facial_recognition'  
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     
 
