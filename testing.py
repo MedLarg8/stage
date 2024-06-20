@@ -53,9 +53,12 @@ def create_database_client(client):
 
 def create_database_transaction(transaction):#this function creates the transaction and updates the user table
     assert isinstance(transaction, Transaction)
-    sender, recepient, value, time, signature = transaction.sender, transaction.recipient, transaction.value, transaction.time, transaction.signature
-    sender_username = sender.username
-    recepient_username = recepient.username
+    sender_username = transaction.sender.username
+    recepient_username = transaction.recipient.username
+    sender = get_client_by_username(sender_username)
+    recepient = get_client_by_username(recepient_username)
+    value, time, signature = transaction.value, transaction.time, transaction.signature
+    
     if value<=sender._balance:
 
         cur = mysql.connection.cursor()
@@ -149,9 +152,6 @@ def create_nonce_for_last_block():
 
 
 
-
-
-
 def add_transaction_to_last_block(transaction):
     assert isinstance(transaction, Transaction)
     cur = mysql.connection.cursor()
@@ -203,11 +203,27 @@ def pass_transaction(transaction):
 
 
 
-
-
-
-
-
+def get_client_by_username(username):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM user WHERE username = %s",
+                                  (username,))
+    resultat = cur.fetchone()
+    print("resultat is :",resultat)
+    password = resultat[2]
+    image = resultat[3]
+    date = resultat[4]
+    empreinte = resultat[5]
+    public_key = resultat[6]
+    private_key = resultat[7]
+    balance = resultat[8]
+    password = password.encode('utf-8')
+    client = Client(username,password,image,balance)
+    client._private_key = private_key
+    client._public_key = public_key
+    client.date = date
+    client.empreinte = empreinte
+    return client
+    
 
 
 
