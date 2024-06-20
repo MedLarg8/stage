@@ -29,7 +29,9 @@ def create_database_client(client):
     cur = mysql.connection.cursor()
     
     # Check if the username already exists
-    cur.execute("SELECT 1 FROM user WHERE username = %s", (username))
+    print("pre execution")
+    cur.execute("SELECT 1 FROM user WHERE username = %s", (username,))
+    print("post execution")
     print("cursor created")
     result = cur.fetchone()
     print("fetched")
@@ -48,16 +50,7 @@ def create_database_client(client):
     
     cur.close()
 
-    
 
-def create_database_client(client):
-    assert isinstance(client,Client) 
-    username, password, image, date, empreinte, public_key, private_key, balance  = client.username, client.password, client.image, client.date, client.empreinte, client._public_key, client._private_key, client._balance
-    cur = mysql.connection.cursor()
-    cur.execute("INSERT INTO user (username, password,image, date, empreinte, `public-key`, `private-key`, balance) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                (username, password, image, date, empreinte, public_key, private_key, balance))
-    mysql.connection.commit()
-    cur.close()
 
 def update_database_client_balance(client):
     assert isinstance(client,Client)
