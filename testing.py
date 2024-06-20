@@ -68,81 +68,32 @@ def create_database_transaction(transaction):#this function creates the transact
         print("not enough balance")
     cur.close()
 
+def get_verified_transactions_from_block(block_hash):
+    pass
+
+def create_database_block(block):
+    assert isinstance(block,Block)
+
+def pass_transaction(transaction):
+    assert isinstance(transaction, Transaction)
 
 
-
-
-
-
-def pass_transaction(transactions):
-    global LAST_BLOCK_HASH
-    global LAST_TRANSACTION_INDEX
-    global ALL_TRANSACTIONS
-    print("LAST BLOCK HASH : ",LAST_BLOCK_HASH)
-    print("LAST TRANSACTION INDEX : ",LAST_TRANSACTION_INDEX)
-    if not transactions:
-        return
-    else :
-        ALL_TRANSACTIONS += transactions
-        print("size of all transaction: ",len(ALL_TRANSACTIONS))
-    
-    if not blockchain:
-        block = Block()
-    else:
-        if blockchain[-1].can_add_transaction(ALL_TRANSACTIONS[LAST_TRANSACTION_INDEX]):
-            block = blockchain = [-1]
-        else:
-            block = Block()
-
-    while(block.can_add_transaction(ALL_TRANSACTIONS[LAST_TRANSACTION_INDEX]) and LAST_TRANSACTION_INDEX<len(ALL_TRANSACTIONS)):
-        temp_transaction = ALL_TRANSACTIONS[LAST_TRANSACTION_INDEX]
-        print("transaction #",LAST_TRANSACTION_INDEX)
-        b1 = True
-        try:
-            verify_signature(temp_transaction)
-            print("signature verified")
-        except(ValueError,TypeError):
-            b1 = False
-            print("wrong signature")
-        
-        if b1 and check_balance(temp_transaction):
-            block.verified_transaction.append(temp_transaction)
-            execute_transaction(temp_transaction)
-        else:
-            print("non validated")
-        
-        print("pre incrementation")
-        LAST_TRANSACTION_INDEX +=1
-        print("post incrementation")
-        if(LAST_TRANSACTION_INDEX<len(ALL_TRANSACTIONS)):
-            if block.can_add_transaction(ALL_TRANSACTIONS[LAST_TRANSACTION_INDEX])==False:
-
-                block.previous_block_hash = LAST_BLOCK_HASH
-                block.Nonce = mine(block, 2)
-                digest = hash(block)
-                blockchain.append(block)
-                LAST_BLOCK_HASH = digest
-
-                block = Block()
-                print("new block added")
-            else:
-                print("working on the same block")
-        else:
-            break
-
-    blockchain.append(block)
 
 
 
 if __name__ == "__main__":
     with app.app_context():
-        Dinesh = Client("dinesh",b"123456","image",900)
-        create_database_client(Dinesh)
-        Ramesh = Client("ramesh",b"123456","image",800)
-        create_database_client(Ramesh)
-        transaction1 = Transaction(Dinesh, Ramesh,100)
-        print("transaction created")
-        create_database_transaction(transaction1)
-        print("transaction passed")
+        #Dinesh = Client("dinesh",b"123456","image",900)
+        #create_database_client(Dinesh)
+        #Ramesh = Client("ramesh",b"123456","image",800)
+        #create_database_client(Ramesh)
+        #transaction1 = Transaction(Dinesh, Ramesh,100)
+        #create_database_transaction(transaction1)
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM user")
+        result = cur.fetchall()
+        print(result[-1])
+
+    
 
     
