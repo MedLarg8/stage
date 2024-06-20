@@ -29,13 +29,11 @@ def create_database_client(client):
     cur = mysql.connection.cursor()
     
     # Check if the username already exists
-    print("pre execution")
+    
     cur.execute("SELECT 1 FROM user WHERE username = %s", (username,))
-    print("post execution")
-    print("cursor created")
+    
     result = cur.fetchone()
-    print("fetched")
-    print("result = ",result)
+    
     
     if result:
         # Username already exists, do nothing
@@ -52,24 +50,23 @@ def create_database_client(client):
 
 
 
-def update_database_client_balance(client):
-    assert isinstance(client,Client)
-    empreinte, balance  = client.empreinte, client._balance
-    cur = mysql.connection.cursor()
-    cur.execute("UPDATE user SET (balance) VALUES (%s) WHERE empreiente = %s",
-                (balance,empreinte))
-    mysql.connection.commit()
-    cur.close()
-
-
-
-def execute_transaction(transaction):
+def create_database_transaction(transaction):#this function creates the transaction and updates the user table
     assert isinstance(transaction, Transaction)
+    sender, recepient, value, time, signature = transaction.sender, transaction.recipient, transaction.value, transaction.time, transaction.signature
+    sender_username = sender.username
+    recepient_username = recepient.username
+    if value<=sender._balance:
 
-    sender = transaction.sender
-    recepient = transaction.recipient
-    value = transaction.value
-
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO transactions(sender, recepient, value, time, signature) VALUES (%s,%s,%s,%s,%s)",
+                    (sender, recepient, value, time, signature))
+        
+        cur.execute("UPDATE user SET balance = balance - %s WHERE username = %s",(value,sender_username))
+        cur.execute("UPDATE user SET balance = balance + %s WHERE username = %s",(value,recepient_username))
+        mysql.connection.commit()
+    else:
+        print("not enough balance")
+    cur.close()
 
 
 
@@ -145,5 +142,7 @@ if __name__ == "__main__":
         create_database_client(Ramesh)
         transaction1 = Transaction(Dinesh, Ramesh,100)
         print("transaction created")
+        create_database_transaction(transaction1)
+        print("transaction passed")
 
     
