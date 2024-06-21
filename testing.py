@@ -3,6 +3,7 @@ from flask import Flask
 from flask_mysqldb import MySQL
 import datetime
 from empreinte_digitale.empreinte_functions import create_empreinte
+from blockChain.tuto import verify_signature
 
 
 UPLOAD_FOLDER = "static"
@@ -200,15 +201,23 @@ def is_blockchain_empty():
 
 def pass_transaction(transaction):
     assert isinstance(transaction,Transaction)
-    if is_blockchain_empty():
-        create_database_block()
-    else:
-        if can_pass_transaction(transaction):
-            add_transaction_to_last_block(transaction)
+    b = True
+    try:
+        verify_signature(transaction)
+    except(ValueError, TypeError):
+        b = False
+    if b :
+        if is_blockchain_empty():
+            create_database_block()
         else:
-            digest = create_nonce_for_last_block()
-            create_database_block(digest)
-            add_transaction_to_last_block(transaction)
+            if can_pass_transaction(transaction):
+                add_transaction_to_last_block(transaction)
+            else:
+                digest = create_nonce_for_last_block()
+                create_database_block(digest)
+                add_transaction_to_last_block(transaction)
+    else:
+        print("transaction signature not verified")
 
 
 
@@ -242,6 +251,8 @@ def get_client_by_username(username):
 
 
 
+
+
 #DIGITAL INMPRINT FUNCTIONNALITIES
 def check_imprint_validity(username):
     cur = mysql.connection.cursor()
@@ -259,19 +270,21 @@ def check_imprint_validity(username):
 if __name__ == "__main__":
     with app.app_context():
         Dinesh = Client("dinesh",b"123456","image",900)
-        create_database_client(Dinesh)
+        #create_database_client(Dinesh)
         Ramesh = Client("ramesh",b"123456","image",800)
-        create_database_client(Ramesh)
+        #create_database_client(Ramesh)
         transaction1 = Transaction(Dinesh, Ramesh,100)
-        if create_database_transaction(transaction1):
-            print("transaction created")
-            pass_transaction(transaction1)
-        #med = Client("mohamed",b"123456","image")
-        #create_database_client(med)
-        #if check_imprint_validity("mohamed"):
-        #    print("empreinte valide")
-        #else:
-        #    print("empreinte non valide")
+        try:
+            verify_signature(transaction1)
+            print("signature verfied")
+        except(ValueError, TypeError):
+            print("wronge signature")
+        med = Client("mohamed",b"123456","image")
+        create_database_client(med)
+        if check_imprint_validity("mohamed"):
+            print("empreinte valide")
+        else:
+            print("empreinte non valide")
 
 
     
