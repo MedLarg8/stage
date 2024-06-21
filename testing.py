@@ -2,12 +2,13 @@ from blockChain.tuto import Client, Transaction, Block, mine, verify_signature, 
 from flask import Flask
 from flask_mysqldb import MySQL
 import datetime
+from empreinte_digitale.empreinte_functions import create_empreinte
 
 
 UPLOAD_FOLDER = "static"
 
 app = Flask(__name__)
-app.secret_key = 'secret-key'
+#app.secret_key = 'secret-key'
 #testing commit
 # MySQL Config
 app.config['MYSQL_HOST'] = 'localhost'
@@ -23,6 +24,7 @@ mysql = MySQL(app)
 
 
 def create_database_client(client):
+    assert isinstance(client, Client)
     print("asserting instance")
     assert isinstance(client, Client) 
     username, password, image, date, empreinte, public_key, private_key, balance = client.username, client.password, client.image, client.date, client.empreinte, client._public_key, client._private_key, client._balance
@@ -235,16 +237,38 @@ def get_client_by_username(username):
 
 
 
+
+
+#DIGITAL INMPRINT FUNCTIONNALITIES
+def check_imprint_validity(username):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM user WHERE username = %s",
+                (username,))
+    resultat = cur.fetchone()
+    database_username, password, date, database_empreinte = resultat[1], resultat[2], resultat[4], resultat[5]
+    empreinte_valide = create_empreinte(database_username,password,date)
+    if empreinte_valide == database_empreinte:
+        return True
+
+    return False
+
+
 if __name__ == "__main__":
     with app.app_context():
-        Dinesh = Client("dinesh",b"123456","image",900)
-        create_database_client(Dinesh)
-        Ramesh = Client("ramesh",b"123456","image",800)
-        create_database_client(Ramesh)
-        transaction1 = Transaction(Dinesh, Ramesh,100)
-        create_database_transaction(transaction1)
-        print("transaction created")
-        pass_transaction(transaction1)
+        #Dinesh = Client("dinesh",b"123456","image",900)
+        #create_database_client(Dinesh)
+        #Ramesh = Client("ramesh",b"123456","image",800)
+        #create_database_client(Ramesh)
+        #transaction1 = Transaction(Dinesh, Ramesh,100)
+        #create_database_transaction(transaction1)
+        #print("transaction created")
+        #pass_transaction(transaction1)
+        med = Client("mohamed",b"123456","image")
+        create_database_client(med)
+        if check_imprint_validity("mohamed"):
+            print("empreinte valide")
+        else:
+            print("empreinte non valide")
 
 
     

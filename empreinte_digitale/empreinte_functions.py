@@ -125,16 +125,27 @@ testing_hash = "79dfcc5d737194467d52245cfbbba951839"
 
 
 #print(determiner_medthode_de_cryptage(LIST_OF_ALGORITHMS,testing_hash))
+def extract_numbers(input_string):
+    # Use a list comprehension to filter out the digits and join them into a single string
+    numbers = ''.join([char for char in input_string if char.isdigit()])
+    return numbers
 
 
-def create_empreinte(username,hash,date,liste_algo):
+def create_empreinte(username,hash,date,liste_algo=LIST_OF_ALGORITHMS):
     assert isinstance(date,datetime.datetime)
     liste = fonction_gdate(liste_algo, date)
     liste = fonction_gtime(liste,date)
     methode_cryptage = determiner_medthode_de_cryptage(liste,hash)
     h = hashlib.new(methode_cryptage)
-    h.update(username.encode('utf-8'))
+    hash_numbers = extract_numbers(hash)
+    passed_hash = username+hash_numbers
+    h.update(passed_hash.encode('utf-8'))
     return h.hexdigest()
 
-print(create_empreinte("moahmed",testing_hash,testing_date,LIST_OF_ALGORITHMS))
+
+
+if __name__ == "__main__":
+    password = '123456'
+
+    print(create_empreinte("mohamed",testing_hash,testing_date))
 
