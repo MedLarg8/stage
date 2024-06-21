@@ -97,11 +97,11 @@ class Transaction:
         if self.sender == "Genesis":
             identity = "Genesis"
         else:
-            identity = self.sender.identity
+            identity = self.sender.aux_identity
 
         return collections.OrderedDict({
                 'sender': identity,
-                'recipient': self.recipient.identity,
+                'recipient': self.recipient.aux_identity,
                 'value': self.value,
                 'time' : self.time.isoformat()})
 

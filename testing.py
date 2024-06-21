@@ -26,7 +26,7 @@ def create_database_client(client):
     print("asserting instance")
     assert isinstance(client, Client) 
     username, password, image, date, empreinte, public_key, private_key, balance = client.username, client.password, client.image, client.date, client.empreinte, client._public_key, client._private_key, client._balance
-    identity = client.identity
+    identity = client.aux_identity
     cur = mysql.connection.cursor()
     
     # Check if the username already exists
@@ -81,9 +81,9 @@ def get_verified_transactions_from_last_block():
     result = cur.fetchone()
     return get_list_from_str(result)
 
-def get_list_from_str(str):
-    list_str = str.split(',')
-    list_final = [int(num) for num in list_str]
+def get_list_from_str(string):
+    list_str = string.split(',')
+    list_final = [str(num) for num in list_str]
     return list_final
 
 def get_str_from_list(number_list):
@@ -116,14 +116,20 @@ def can_pass_transaction(transaction):
 
     list_transaction = []
     for i in verified_transactions_signatures:
-        temp_transaction = Transaction()
         cur.execute("SELECT * FROM transactions WHERE signature = %s", (i,))
         resultat = cur.fetchone()
-        temp_transaction.sender = resultat[1]
-        temp_transaction.recipient = resultat[2]
-        temp_transaction.value = resultat[3]
-        temp_transaction.time = resultat[4]
-        temp_transaction.signature = resultat[5]
+        temp_sender_signature = resultat[1]
+        temp_recipient_signature = resultat[2]
+        temp_value = resultat[3]
+        temp_time = resultat[4]
+        temp_signature = resultat[5]
+        sender = Client("sender",b"sender","image")
+        recipient = Client("recipient",b"recipient","image")
+        sender.aux_identity = temp_sender_signature
+        recipient.aux_identity = temp_recipient_signature
+        temp_transaction = Transaction(sender, recipient,temp_value)
+        temp_transaction.time = temp_time
+        temp_transaction.signature = temp_signature
         list_transaction.append(temp_transaction)
 
     last_block.verified_transaction = list_transaction
@@ -161,24 +167,21 @@ def add_transaction_to_last_block(transaction):
     cur.execute("SELECT MAX(id) FROM blockchain")
     max_id = cur.fetchone()[0]  
     
-    cur.execute("SELECT verified_transactions from blockchain WHERE id = %s",
-                (max_id,))
+    cur.execute("SELECT verified_transactions FROM blockchain WHERE id = %s", (max_id,))
     resultat = cur.fetchone()
-    print("max id : ",max_id)
-    print("signature : ")
-    print(transaction.signature)
+    print("max id:", max_id)
+    print("signature:", transaction.signature)
     
-    if resultat != None:
-
-        cur.execute("UPDATE blockchain SET verified_transactions = verified_transactions +','+ %s WHERE id = %s",
+    if resultat and resultat[0]:
+        cur.execute("UPDATE blockchain SET verified_transactions = CONCAT(verified_transactions, ',', %s) WHERE id = %s",
                     (transaction.signature, max_id))
     else:
-        cur.execute("UPDATE blockchain SET verified_transactions =  %s WHERE id = %s",
+        cur.execute("UPDATE blockchain SET verified_transactions = %s WHERE id = %s",
                     (transaction.signature, max_id))
         
     mysql.connection.commit()
-
     cur.close()
+
 
 def is_blockchain_empty():
     cur=mysql.connection.cursor()
@@ -201,6 +204,7 @@ def pass_transaction(transaction):
             digest = create_nonce_for_last_block()
             create_database_block(digest)
             add_transaction_to_last_block(transaction)
+
 
 
 
@@ -241,6 +245,7 @@ if __name__ == "__main__":
         create_database_transaction(transaction1)
         print("transaction created")
         pass_transaction(transaction1)
+
 
     
 
