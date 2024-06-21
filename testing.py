@@ -67,10 +67,12 @@ def create_database_transaction(transaction):#this function creates the transact
         
         cur.execute("UPDATE user SET balance = balance - %s WHERE username = %s",(value,sender_username))
         cur.execute("UPDATE user SET balance = balance + %s WHERE username = %s",(value,recepient_username))
+
         mysql.connection.commit()
+        cur.close()
     else:
         print("not enough balance")
-    cur.close()
+    
 
 def get_verified_transactions_from_last_block():
     cur = mysql.connection.cursor()
