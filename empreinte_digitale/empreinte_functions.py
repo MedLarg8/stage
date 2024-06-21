@@ -145,7 +145,5 @@ def create_empreinte(username,hash,date,liste_algo=LIST_OF_ALGORITHMS):
 
 
 if __name__ == "__main__":
-    password = '123456'
-
     print(create_empreinte("mohamed",testing_hash,testing_date))
 

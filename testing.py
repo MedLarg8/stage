@@ -36,11 +36,12 @@ def create_database_client(client):
     cur.execute("SELECT 1 FROM user WHERE username = %s", (username,))
     
     result = cur.fetchone()
-    
+    cur.close()
     
     if result:
         # Username already exists, do nothing
         print(f"User '{username}' already exists. No action taken.")
+        return False
     else:
         # Insert the new client
         cur.execute("""INSERT INTO user (username, password, image, date, empreinte, `public-key`, `private-key`, identity, balance) 
@@ -48,8 +49,8 @@ def create_database_client(client):
                     (username, password, image, date, empreinte, public_key, private_key,identity, balance))
         mysql.connection.commit()
         print(f"User '{username}' created successfully.")
+        return True
     
-    cur.close()
 
 
 
@@ -72,8 +73,10 @@ def create_database_transaction(transaction):#this function creates the transact
 
         mysql.connection.commit()
         cur.close()
+        return True
     else:
         print("not enough balance")
+        return False
     
 
 def get_verified_transactions_from_last_block():
@@ -255,20 +258,20 @@ def check_imprint_validity(username):
 
 if __name__ == "__main__":
     with app.app_context():
-        #Dinesh = Client("dinesh",b"123456","image",900)
-        #create_database_client(Dinesh)
-        #Ramesh = Client("ramesh",b"123456","image",800)
-        #create_database_client(Ramesh)
-        #transaction1 = Transaction(Dinesh, Ramesh,100)
-        #create_database_transaction(transaction1)
-        #print("transaction created")
-        #pass_transaction(transaction1)
-        med = Client("mohamed",b"123456","image")
-        create_database_client(med)
-        if check_imprint_validity("mohamed"):
-            print("empreinte valide")
-        else:
-            print("empreinte non valide")
+        Dinesh = Client("dinesh",b"123456","image",900)
+        create_database_client(Dinesh)
+        Ramesh = Client("ramesh",b"123456","image",800)
+        create_database_client(Ramesh)
+        transaction1 = Transaction(Dinesh, Ramesh,100)
+        if create_database_transaction(transaction1):
+            print("transaction created")
+            pass_transaction(transaction1)
+        #med = Client("mohamed",b"123456","image")
+        #create_database_client(med)
+        #if check_imprint_validity("mohamed"):
+        #    print("empreinte valide")
+        #else:
+        #    print("empreinte non valide")
 
 
     
