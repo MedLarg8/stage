@@ -35,14 +35,14 @@ def index():
 def home():
     if 'username' in session:
         cur = mysql.connection.cursor()
-        cur.execute("SELECT profile_image FROM user WHERE username = %s", [session['username']])
+        cur.execute("SELECT image FROM user WHERE username = %s", [session['username']])
         user = cur.fetchone()
         cur.close()
         if user and user[0]:
-            profile_image = base64.b64encode(user[0]).decode('utf-8')
+            image = base64.b64encode(user[0]).decode('utf-8')
         else:
-            profile_image = None
-        return render_template('home.html', username=session['username'], profile_image=profile_image)
+            image = None
+        return render_template('home.html', username=session['username'], image=image)
     return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -51,27 +51,31 @@ def register():
         username = request.form['username']
         password = request.form['password']
         bpassword = password.encode('utf-8')
-        empreinte = empreinte_functions.create_empreinte(username, bpassword, datetime.now(), empreinte_functions.LIST_OF_ALGORITHMS)
+        image = request.form['image']
+        RegisteredClient = Client(username,bpassword,image)
+        clientCreated = create_database_client(RegisteredClient)
+
+        if clientCreated:
+            pass
+            #create folder for user by his username in static(UPLOAD_FOLDER) 
+            #save the image passed in that folder and create a unique id for it
+        else:
+            pass
 
         # Handle profile image upload
-        if 'profile_image' in request.files:
-            profile_image = request.files['profile_image']
+        if 'image' in request.files:
+            image = request.files['image']
 
-            if profile_image.filename == '':
-                profile_image_filename = None
+            if image.filename == '':
+                image_filename = None
             else:
                 # Generate a unique filename
-                filename = str(uuid.uuid4()) + secure_filename(profile_image.filename)
-                profile_image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                profile_image_filename = filename
+                filename = str(uuid.uuid4()) + secure_filename(image.filename)
+                image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                image_filename = filename
         else:
-            profile_image_filename = None
+            image_filename = None
 
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO user (username, password, empreinte, image) VALUES (%s, %s, %s, %s)",
-                    (username, password_hash, empreinte, profile_image_filename))
-        mysql.connection.commit()
-        cur.close()
 
         flash('You have successfully registered! Please log in.', 'success')
         return redirect(url_for('login'))

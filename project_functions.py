@@ -26,8 +26,6 @@ mysql = MySQL(app)
 
 def create_database_client(client):
     assert isinstance(client, Client)
-    print("asserting instance")
-    assert isinstance(client, Client) 
     username, password, image, date, empreinte, public_key, private_key, balance = client.username, client.password, client.image, client.date, client.empreinte, client._public_key, client._private_key, client._balance
     identity = client.aux_identity
     cur = mysql.connection.cursor()
@@ -42,6 +40,7 @@ def create_database_client(client):
     if result:
         # Username already exists, do nothing
         print(f"User '{username}' already exists. No action taken.")
+        cur.close()
         return False
     else:
         # Insert the new client
@@ -50,8 +49,9 @@ def create_database_client(client):
                     (username, password, image, date, empreinte, public_key, private_key,identity, balance))
         mysql.connection.commit()
         print(f"User '{username}' created successfully.")
+        cur.close()
         return True
-    cur.close()
+    
     
 
 
