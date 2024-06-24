@@ -37,7 +37,7 @@ def create_database_client(client):
     cur.execute("SELECT 1 FROM user WHERE username = %s", (username,))
     
     result = cur.fetchone()
-    cur.close()
+    
     
     if result:
         # Username already exists, do nothing
@@ -51,6 +51,7 @@ def create_database_client(client):
         mysql.connection.commit()
         print(f"User '{username}' created successfully.")
         return True
+    cur.close()
     
 
 
@@ -269,11 +270,11 @@ def check_imprint_validity(username):
 
 if __name__ == "__main__":
     with app.app_context():
-        b=True
+        b=False
         if b:
             password = "123456"
             bpassword = password.encode('utf-8')
-            Dinesh = Client("testing encode",b"123456","image",900)
+            Dinesh = Client("testing encode 2",bpassword,"image",900)
             create_database_client(Dinesh)
             
 

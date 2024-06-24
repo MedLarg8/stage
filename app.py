@@ -51,7 +51,7 @@ def register():
         username = request.form['username']
         password = request.form['password']
         bpassword = password.encode('utf-8')
-        empreinte = empreinte_functions.create_empreinte(username, password_hash, datetime.now(), empreinte_functions.LIST_OF_ALGORITHMS)
+        empreinte = empreinte_functions.create_empreinte(username, bpassword, datetime.now(), empreinte_functions.LIST_OF_ALGORITHMS)
 
         # Handle profile image upload
         if 'profile_image' in request.files:
