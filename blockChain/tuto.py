@@ -3,7 +3,7 @@ import random
 import string
 import json
 import binascii
-import Cryptodome.Random
+import Crypto.Random
 import numpy as np
 import pandas as pd
 import pylab as pl
@@ -11,11 +11,12 @@ import logging
 import datetime
 import collections
 
-import Cryptodome
-import Cryptodome.Hash
-from Cryptodome.Hash import SHA
-from Cryptodome.PublicKey import RSA
-from Cryptodome.Signature import PKCS1_v1_5
+
+import Crypto
+import Crypto.Hash
+from Crypto.Hash import SHA
+from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
 from hashlib import sha256
 
 from empreinte_digitale import empreinte_functions
@@ -67,7 +68,7 @@ class Block:
 
 class Client:
     def __init__(self,username,password,image,balance=1000):
-        random = Cryptodome.Random.new().read  #creation random byte
+        random = Crypto.Random.new().read  #creation random byte
         self._private_key = RSA.generate(1024, random)  #private key = rsa de 2048 bites a partir de random  (2048 est le longuer minimum #nvm 2048 raises exceptions idk why)
         self._public_key = self._private_key.publickey()  #creattion de cle public a partir du cle prive
         self._signer = PKCS1_v1_5.new(self._private_key) #signer le cle prive

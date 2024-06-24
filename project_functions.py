@@ -270,7 +270,7 @@ def check_imprint_validity(username):
 
 if __name__ == "__main__":
     with app.app_context():
-        b=False
+        b=True
         if b:
             password = "123456"
             bpassword = password.encode('utf-8')
