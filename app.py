@@ -1,6 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, session, flash
 from flask_mysqldb import MySQL
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from empreinte_digitale import empreinte_functions
 import base64
@@ -8,7 +7,7 @@ import hashlib
 import os
 import uuid  # for generating unique IDs
 from werkzeug.utils import secure_filename
-from project_functions import create_database_client, Client
+from project_functions import create_database_client, Client, check_imprint_validity
 
 UPLOAD_FOLDER = "static"
 
@@ -36,7 +35,7 @@ def home():
         user = cur.fetchone()
         cur.close()
         if user and user[0]:
-            image = base64.b64encode(user[0]).decode('utf-8')
+            image = user[0]
         else:
             image = None
         return render_template('home.html', username=session['username'], image=image)
@@ -87,11 +86,17 @@ def login():
         cur = mysql.connection.cursor()
         cur.execute("SELECT * FROM user WHERE username = %s", [username])
         user = cur.fetchone()
+        print("user : ",user)
+        bpassword = password.encode('utf-8')
+        bpassword = hashlib.sha1(bpassword).hexdigest()
         cur.close()
-        
-        if user and check_password_hash(user[2], password):  # user[2] is the password_hash column
-            session['username'] = user[1]  # user[1] is the username column
-            return redirect(url_for('home'))
+        if user and check_imprint_validity(username):  # user[2] is the password_hash column
+            if bpassword==user[2]:
+                session['username'] = user[1]  # user[1] is the username column
+                return redirect(url_for('home'))
+            else:
+                print(user[2],"passed password is :",bpassword)
+                print("invalid password hash")
         else:
             flash('Invalid username or password. Please try again.', 'danger')
     return render_template('login.html')
