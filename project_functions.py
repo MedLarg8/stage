@@ -269,22 +269,13 @@ def check_imprint_validity(username):
 
 if __name__ == "__main__":
     with app.app_context():
-        Dinesh = Client("dinesh",b"123456","image",900)
-        #create_database_client(Dinesh)
-        Ramesh = Client("ramesh",b"123456","image",800)
-        #create_database_client(Ramesh)
-        transaction1 = Transaction(Dinesh, Ramesh,100)
-        try:
-            verify_signature(transaction1)
-            print("signature verfied")
-        except(ValueError, TypeError):
-            print("wronge signature")
-        med = Client("mohamed",b"123456","image")
-        create_database_client(med)
-        if check_imprint_validity("mohamed"):
-            print("empreinte valide")
-        else:
-            print("empreinte non valide")
+        b=True
+        if b:
+            password = "123456"
+            bpassword = password.encode('utf-8')
+            Dinesh = Client("testing encode",b"123456","image",900)
+            create_database_client(Dinesh)
+            
 
 
     

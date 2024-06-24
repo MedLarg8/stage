@@ -8,6 +8,7 @@ import hashlib
 import os
 import uuid  # for generating unique IDs
 from werkzeug.utils import secure_filename
+from project_functions import create_database_client, Client
 
 UPLOAD_FOLDER = "static"
 
@@ -49,9 +50,7 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        h = hashlib.new('sha256')
-        h.update(password.encode('utf-8'))
-        password_hash = h.hexdigest()
+        bpassword = password.encode('utf-8')
         empreinte = empreinte_functions.create_empreinte(username, password_hash, datetime.now(), empreinte_functions.LIST_OF_ALGORITHMS)
 
         # Handle profile image upload
