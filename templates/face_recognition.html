@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition</title>
+    <style>
+        #video {
+            width: 640px;
+            height: 480px;
+            margin: 20px auto;
+            display: block;
+        }
+        #message {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Face Recognition</h2>
+    <video id="video" autoplay></video>
+    <div id="message"></div>
+    <button id="recognize">Start Recognition</button>
+
+    <script>
+        const video = document.getElementById('video');
+        const message = document.getElementById('message');
+        const recognizeButton = document.getElementById('recognize');
+
+        recognizeButton.addEventListener('click', function() {
+            recognizeButton.disabled = true;
+            message.textContent = 'Face recognition in progress...';
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    video.play();
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
+                    function recognize() {
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const imageData = canvas.toDataURL('image/jpeg');
+                        
+                        fetch('/recognize', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ image: imageData }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.match) {
+                                message.textContent = `Face matched successfully! Redirecting...`;
+                                setTimeout(() => {
+                                    window.location.href = '/transaction';
+                                }, 2000); // Redirect after 2 seconds
+                            } else {
+                                message.textContent = 'No match found. Please try again.';
+                                recognizeButton.disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            message.textContent = 'Error occurred during recognition. Please try again.';
+                            recognizeButton.disabled = false;
+                        });
+                    }
+
+                    recognize();
+                    setInterval(recognize, 3000); // Perform recognition every 3 seconds
+                })
+                .catch(function(error) {
+                    console.error('Error accessing webcam:', error);
+                    message.textContent = 'Error accessing webcam. Please check permissions.';
+                    recognizeButton.disabled = false;
+                });
+        });
+    </script>
+</body>
+</html>

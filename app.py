@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash
+from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
 from flask_mysqldb import MySQL
 from datetime import datetime
 from empreinte_digitale import empreinte_functions
@@ -7,6 +7,8 @@ import hashlib
 import os
 import uuid  # for generating unique IDs
 from werkzeug.utils import secure_filename
+from deepface import DeepFace
+
 from project_functions import create_database_client, Client, check_imprint_validity, pass_transaction, get_client_by_username, Transaction, create_database_transaction
 
 UPLOAD_FOLDER = "static"
@@ -93,7 +95,7 @@ def login():
         if user and check_imprint_validity(username):  # user[2] is the password_hash column
             if bpassword==user[2]:
                 session['username'] = user[1]  # user[1] is the username column
-                return redirect(url_for('transaction'))
+                return redirect(url_for('face_recognition'))
             else:
                 print(user[2],"passed password is :",bpassword)
                 print("invalid password hash")
@@ -125,7 +127,34 @@ def transaction():
     return render_template('transaction.html')
 
 
+@app.route('/face_recognition', methods=['GET', 'POST'])
+def face_recognition():
+    if request.method == 'GET':
+        return render_template('face_recognition.html')
+    elif request.method == 'POST':
+        # Process the image data received from client-side
+        image_data = request.json.get('image', None)
 
+        if image_data:
+            # Decode base64 image data
+            _, encoded_image = image_data.split(",", 1)
+            decoded_image = base64.b64decode(encoded_image)
+
+            # Save the image temporarily (optional for testing)
+            temp_image_path = os.path.join(app.config['UPLOAD_FOLDER'], 'temp.jpg')
+            with open(temp_image_path, 'wb') as f:
+                f.write(decoded_image)
+
+            # Perform face recognition
+            try:
+                result = DeepFace.verify(temp_image_path, 'test.jpg')
+                match = result['verified']
+            except ValueError:
+                match = False
+
+            return jsonify({'match': match})
+
+    return jsonify({'match': False})
 
 @app.route('/logout')
 def logout():
