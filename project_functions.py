@@ -141,6 +141,7 @@ def can_pass_transaction(transaction):
         list_transaction.append(temp_transaction)
 
     last_block.verified_transaction = list_transaction
+    
     return last_block.can_add_transaction(transaction)
 
     
