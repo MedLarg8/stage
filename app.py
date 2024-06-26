@@ -95,7 +95,7 @@ def login():
         if user and check_imprint_validity(username):  # user[2] is the password_hash column
             if bpassword==user[2]:
                 session['username'] = user[1]  # user[1] is the username column
-                return redirect(url_for('face_recognition'))
+                return redirect(url_for('transaction'))
             else:
                 print(user[2],"passed password is :",bpassword)
                 print("invalid password hash")
@@ -109,7 +109,7 @@ def transaction():
     if request.method == 'POST':
         print("post")
         sender_username = session['username']
-        recepient_username = request.form['recepient']
+        recepient_username = request.form['recipient']
         value = int(request.form['value'])
         print("sender username is : ",sender_username)
         print("recepient username is : ",recepient_username)
