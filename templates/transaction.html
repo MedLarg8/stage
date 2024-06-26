@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Make a Transaction</h1>
+        <form class="form" action="/transaction" method="POST">
+            <label for="recepient">Recipient Username:</label>
+            <input type="text" id="recepient" name="recepient" required>
+            <label for="value">Value:</label>
+            <input type="number" id="value" name="value" required>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>

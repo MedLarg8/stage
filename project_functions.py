@@ -3,7 +3,8 @@ from flask import Flask
 from flask_mysqldb import MySQL
 import datetime
 from empreinte_digitale.empreinte_functions import create_empreinte
-from blockChain.tuto import verify_signature
+from Cryptodome.PublicKey import RSA
+import binascii
 
 
 UPLOAD_FOLDER = "static"
@@ -26,16 +27,16 @@ mysql = MySQL(app)
 
 def create_database_client(client):
     assert isinstance(client, Client)
-    username, password, image, date, empreinte, public_key, private_key, balance = client.username, client.password, client.image, client.date, client.empreinte, client._public_key, client._private_key, client._balance
+    username, password, image, date, empreinte, balance = client.username, client.password, client.image, client.date, client.empreinte, client._balance
+    public_key = binascii.hexlify(client._public_key.export_key(format='DER')).decode('ascii')
+    private_key = binascii.hexlify(client._private_key.export_key(format='DER')).decode('ascii')
     identity = client.aux_identity
+    
     cur = mysql.connection.cursor()
     
     # Check if the username already exists
-    
     cur.execute("SELECT 1 FROM user WHERE username = %s", (username,))
-    
     result = cur.fetchone()
-    
     
     if result:
         # Username already exists, do nothing
@@ -46,7 +47,7 @@ def create_database_client(client):
         # Insert the new client
         cur.execute("""INSERT INTO user (username, password, image, date, empreinte, `public-key`, `private-key`, identity, balance) 
                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (username, password, image, date, empreinte, public_key, private_key,identity, balance))
+                    (username, password, image, date, empreinte, public_key, private_key, identity, balance))
         mysql.connection.commit()
         print(f"User '{username}' created successfully.")
         cur.close()
@@ -225,27 +226,38 @@ def pass_transaction(transaction):
 
 
 def get_client_by_username(username):
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM user WHERE username = %s",
-                                  (username,))
-    resultat = cur.fetchone()
-    print("resultat is :",resultat)
-    password = resultat[2]
-    image = resultat[3]
-    date = resultat[4]
-    empreinte = resultat[5]
-    public_key = resultat[6]
-    private_key = resultat[7]
-    aux_identity = resultat[8]
-    balance = resultat[9]
-    password = password.encode('utf-8')
-    client = Client(username,password,image,balance)
-    client._private_key = private_key
-    client._public_key = public_key
-    client.date = date
-    client.empreinte = empreinte
-    client.aux_identity = aux_identity
-    return client
+    cursor = mysql.connection.cursor()
+    
+    query = "SELECT username, password, image, date, empreinte, `public-key`, `private-key`, identity, balance FROM user WHERE username = %s"
+    cursor.execute(query, (username,))
+    result = cursor.fetchone()
+    
+    if result:
+        username, password, image, date, empreinte, public_key, private_key, identity, balance = result
+        
+        client = Client(username, b"0", image, balance)
+        
+        # Decode the keys from hex to binary and import
+        try:
+            public_key = binascii.unhexlify(public_key)
+            private_key = binascii.unhexlify(private_key)
+            client._public_key = RSA.import_key(public_key)
+            client._private_key = RSA.import_key(private_key)
+        except (binascii.Error, ValueError) as e:
+            print(f"Error importing keys: {e}")
+            cursor.close()
+            return None
+        
+        client.aux_identity = identity
+        client.password = password
+        
+        cursor.close()
+        return client
+    else:
+        cursor.close()
+        return None
+
+
     
 
 
@@ -272,11 +284,18 @@ if __name__ == "__main__":
     with app.app_context():
         b=True
         if b:
-            password = "123456"
-            bpassword = password.encode('utf-8')
-            Dinesh = Client("testing encode 2",bpassword,"image",900)
-            create_database_client(Dinesh)
-            
+            sender = get_client_by_username("mohamed2")
+            if sender:
+                recepient = get_client_by_username("mohamed2")
+                if recepient:
+                    transaction = Transaction(sender, recepient, 100)
+                    print(transaction)
+                else:
+                    print("Recipient not found.")
+            else:
+                print("Sender not found.")
+        else:
+            create_database_client(Client("mohamed2",b"123456","image"))
 
 
     

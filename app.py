@@ -7,7 +7,7 @@ import hashlib
 import os
 import uuid  # for generating unique IDs
 from werkzeug.utils import secure_filename
-from project_functions import create_database_client, Client, check_imprint_validity
+from project_functions import create_database_client, Client, check_imprint_validity, pass_transaction, get_client_by_username, Transaction, create_database_transaction
 
 UPLOAD_FOLDER = "static"
 
@@ -18,14 +18,14 @@ app.secret_key = 'secret-key'
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'stage_facial_recognition'
+app.config['MYSQL_DB'] = 'facial_recognition_table'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 mysql = MySQL(app)
 
 @app.route('/')
 def index():
-    return redirect(url_for('register'))
+    return redirect(url_for('login'))
 
 @app.route('/home')
 def home():
@@ -93,13 +93,39 @@ def login():
         if user and check_imprint_validity(username):  # user[2] is the password_hash column
             if bpassword==user[2]:
                 session['username'] = user[1]  # user[1] is the username column
-                return redirect(url_for('home'))
+                return redirect(url_for('transaction'))
             else:
                 print(user[2],"passed password is :",bpassword)
                 print("invalid password hash")
         else:
             flash('Invalid username or password. Please try again.', 'danger')
     return render_template('login.html')
+
+@app.route('/transaction', methods=['GET','POST'])
+def transaction():
+    print("transaction")
+    if request.method == 'POST':
+        print("post")
+        sender_username = session['username']
+        recepient_username = request.form['recepient']
+        value = int(request.form['value'])
+        print("sender username is : ",sender_username)
+        print("recepient username is : ",recepient_username)
+        sender = get_client_by_username(sender_username)
+        print("SENDER :", sender)
+        recepient = get_client_by_username(recepient_username)
+        print("RECIEPIENT :",recepient)
+        transaction = Transaction(sender, recepient,value)
+        if create_database_transaction(transaction):
+            print("TRANSACTION CREATED !!!!!!!!!!")
+            pass_transaction(transaction)
+        else:
+            print("TRANSACTION NOT CREATED !!!!!!!!!")
+        return redirect(url_for('transaction'))
+    return render_template('transaction.html')
+
+
+
 
 @app.route('/logout')
 def logout():

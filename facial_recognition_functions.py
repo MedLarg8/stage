@@ -23,30 +23,34 @@ def check_face(frame,ref):
     except ValueError:
         face_match  =False
 
+def run_application():
+
+    while True:
+        ret, frame = cap.read()
+
+        if ret:
+            if counter % 20 ==0:
+                try:
+                    threading.Thread(target=check_face, args=(frame.copy(),reference_img,)).start()
+                except ValueError:
+                    pass
+            counter+=1
+
+            if face_match:
+                cv2.putText(frame, "MATCH",(20,450), cv2.FONT_HERSHEY_SIMPLEX,2,(0,255,0),3)
+            else:
+                cv2.putText(frame, "no MATCH",(20,450), cv2.FONT_HERSHEY_SIMPLEX,2,(0,0,255),3)
+
+            cv2.imshow("video",frame)
 
 
-while True:
-    ret, frame = cap.read()
-
-    if ret:
-        if counter % 20 ==0:
-            try:
-                threading.Thread(target=check_face, args=(frame.copy(),reference_img,)).start()
-            except ValueError:
-                pass
-        counter+=1
-
-        if face_match:
-            cv2.putText(frame, "MATCH",(20,450), cv2.FONT_HERSHEY_SIMPLEX,2,(0,255,0),3)
-        else:
-            cv2.putText(frame, "no MATCH",(20,450), cv2.FONT_HERSHEY_SIMPLEX,2,(0,0,255),3)
-
-        cv2.imshow("video",frame)
+        key = cv2.waitKey(1)
+        if key == ord('q'):
+            break
 
 
-    key = cv2.waitKey(1)
-    if key == ord('q'):
-        break
+    cv2.destroyAllWindows()
 
 
-cv2.destroyAllWindows()
+if __name__=="__main__":
+    run_application()
