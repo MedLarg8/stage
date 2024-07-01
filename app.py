@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 from deepface import DeepFace
 import threading
 import cv2
+import functools
 
 from project_functions import create_database_client, Client, check_imprint_validity, pass_transaction, get_client_by_username, Transaction, create_database_transaction
 
@@ -176,16 +177,41 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
 
-def check_face(frame):
+def check_face(frame, username):
     global face_match
-    try:
-        result = DeepFace.verify(frame, reference_img)
-        face_match = result['verified']
-    except Exception as e:
-        print(f"Error verifying face: {e}")
-        face_match = False
+    with app.app_context():
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT image FROM user WHERE username = %s", [username])
+            user_data = cur.fetchone()
+            cur.close()
 
-def generate_frames():
+            if not user_data:
+                print(f"No user found for username: {username}")
+                face_match = False
+                return
+
+            image_fetch = user_data[0]
+            if not image_fetch:
+                print(f"No image found for user: {username}")
+                face_match = False
+                return
+
+            image_path = os.path.join("static", username, image_fetch)
+            image = cv2.imread(image_path)
+
+            if image is None:
+                print(f"Failed to read image from path: {image_path}")
+                face_match = False
+                return
+
+            result = DeepFace.verify(frame, image)
+            face_match = result['verified']
+        except Exception as e:
+            print(f"Error verifying face: {e}")
+            face_match = False
+
+def generate_frames(username):
     global face_match
     global counter
     while True:
@@ -195,7 +221,7 @@ def generate_frames():
 
         if recognition_started and counter % 30 == 0:
             try:
-                threading.Thread(target=check_face, args=(frame.copy(),)).start()
+                threading.Thread(target=functools.partial(check_face, frame.copy(), username)).start()
             except Exception as e:
                 print(f"Error starting thread: {e}")
 
@@ -209,11 +235,15 @@ def generate_frames():
         ret, buffer = cv2.imencode('.jpg', frame)
         frame = buffer.tobytes()
         yield (b'--frame\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         
 @app.route('/video_feed')
 def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    if 'username' in session:
+        username = session['username']
+        return Response(generate_frames(username), mimetype='multipart/x-mixed-replace; boundary=frame')
+    else:
+        return jsonify({'error': 'User not logged in'}), 403
 
 @app.route('/start_recognition', methods=['GET'])
 def start_recognition():

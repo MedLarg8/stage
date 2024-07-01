@@ -239,15 +239,8 @@ def get_client_by_username(username):
         client = Client(username, b"0", image, balance)
         
         # Decode the keys from hex to binary and import
-        try:
-            public_key = binascii.unhexlify(public_key)
-            private_key = binascii.unhexlify(private_key)
-            client._public_key = RSA.import_key(public_key)
-            client._private_key = RSA.import_key(private_key)
-        except (binascii.Error, ValueError) as e:
-            print(f"Error importing keys: {e}")
-            cursor.close()
-            return None
+        client._private_key = RSA.import_key(binascii.unhexlify(private_key))
+        client._public_key = RSA.import_key(binascii.unhexlify(public_key))
         
         client.aux_identity = identity
         client.password = password
@@ -282,21 +275,19 @@ def check_imprint_validity(username):
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        b=True
-        if b:
-            sender = get_client_by_username("mohamed2")
-            if sender:
-                recepient = get_client_by_username("mohamed2")
-                if recepient:
-                    transaction = Transaction(sender, recepient, 100)
-                    print(transaction)
-                else:
-                    print("Recipient not found.")
+    with app.app_context(): 
+        sender = get_client_by_username("testing user 2")
+        if sender:
+            recepient = get_client_by_username("testing user")
+            if recepient:
+                transaction = Transaction(sender, recepient, 100)
+                print(transaction)
             else:
-                print("Sender not found.")
+                print("Recipient not found.")
         else:
-            create_database_client(Client("mohamed2",b"123456","image"))
+            print("Sender not found.")
+    
+            
 
 
     
