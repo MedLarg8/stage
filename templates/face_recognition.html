@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Face Recognition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -55,68 +56,41 @@
 </head>
 <body>
     <h2>Face Recognition</h2>
-    <video id="video" autoplay></video>
     <div id="message"></div>
-    <button id="recognize">Start Recognition</button>
-
+    <button id="recognize" onclick="toggleRecognition()">Start Recognition</button>
+    <br><br>
+    <img id="video_feed" src="{{ url_for('video_feed') }}" alt="Video Feed" width="640" height="480">
     <script>
-        const video = document.getElementById('video');
-        const message = document.getElementById('message');
-        const recognizeButton = document.getElementById('recognize');
+        let recognitionStarted = false;
 
-        recognizeButton.addEventListener('click', function() {
-            recognizeButton.disabled = true;
-            message.textContent = 'Face recognition in progress...';
+        function toggleRecognition() {
+    if (!recognitionStarted) {
+        axios.get('/start_recognition')
+            .then(function (response) {
+                console.log('Recognition started');
+                document.getElementById('recognize').textContent = 'Stop Recognition';
+                recognitionStarted = true;
+            })
+            .catch(function (error) {
+                console.error('Error starting recognition:', error);
+            });
+    } else {
+        axios.get('/stop_recognition')
+            .then(function (response) {
+                console.log('Recognition stopped:', response.data);
+                document.getElementById('recognize').textContent = 'Start Recognition';
+                recognitionStarted = false;
 
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    video.srcObject = stream;
-                    video.play();
-
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-
-                    function recognize() {
-                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        const imageData = canvas.toDataURL('image/jpeg');
-                        
-                        fetch('/recognize', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ image: imageData }),
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.match) {
-                                message.textContent = `Face matched successfully! Redirecting...`;
-                                setTimeout(() => {
-                                    window.location.href = '/transaction';
-                                }, 2000); // Redirect after 2 seconds
-                            } else {
-                                message.textContent = 'No match found. Please try again.';
-                                recognizeButton.disabled = false;
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            message.textContent = 'Error occurred during recognition. Please try again.';
-                            recognizeButton.disabled = false;
-                        });
-                    }
-
-                    recognize();
-                    setInterval(recognize, 3000); // Perform recognition every 3 seconds
-                })
-                .catch(function(error) {
-                    console.error('Error accessing webcam:', error);
-                    message.textContent = 'Error accessing webcam. Please check permissions.';
-                    recognizeButton.disabled = false;
-                });
-        });
+                // Check if there is a match
+                if (response.data.match) {
+                    window.location.href = '/transaction';  // Redirect to transaction.html
+                }
+            })
+            .catch(function (error) {
+                console.error('Error stopping recognition:', error);
+            });
+            }       
+        }
     </script>
 </body>
 </html>
