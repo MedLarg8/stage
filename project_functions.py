@@ -239,8 +239,16 @@ def get_client_by_username(username):
         client = Client(username, b"0", image, balance)
         
         # Decode the keys from hex to binary and import
-        client._private_key = RSA.import_key(binascii.unhexlify(private_key))
-        client._public_key = RSA.import_key(binascii.unhexlify(public_key))
+        print("Public Key (hex):", public_key)
+        print("Private Key (hex):", private_key)
+
+        try:
+            client._private_key = RSA.import_key(binascii.unhexlify(private_key))
+            client._public_key = RSA.import_key(binascii.unhexlify(public_key))
+        except ValueError as e:
+            print(f"Error importing key: {e}")
+            cursor.close()
+            return None
         
         client.aux_identity = identity
         client.password = password
@@ -276,18 +284,20 @@ def check_imprint_validity(username):
 
 if __name__ == "__main__":
     with app.app_context(): 
-        sender = get_client_by_username("testing user 2")
-        if sender:
-            recepient = get_client_by_username("testing user")
-            if recepient:
-                transaction = Transaction(sender, recepient, 100)
-                print(transaction)
+        b = True
+        if b:
+            sender = get_client_by_username("testing user 2")
+            if sender:
+                recepient = get_client_by_username("testing user")
+                if recepient:
+                    transaction = Transaction(sender, recepient, 100)
+                    print(transaction)
+                else:
+                    print("Recipient not found.")
             else:
-                print("Recipient not found.")
+                print("Sender not found.")
         else:
-            print("Sender not found.")
-    
-            
+            pass
 
 
     
