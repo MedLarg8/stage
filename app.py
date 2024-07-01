@@ -95,7 +95,7 @@ def login():
         if user and check_imprint_validity(username):  # user[2] is the password_hash column
             if bpassword==user[2]:
                 session['username'] = user[1]  # user[1] is the username column
-                return redirect(url_for('transaction'))
+                return redirect(url_for('face_recognition'))
             else:
                 print(user[2],"passed password is :",bpassword)
                 print("invalid password hash")

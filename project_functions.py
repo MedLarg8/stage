@@ -3,7 +3,7 @@ from flask import Flask
 from flask_mysqldb import MySQL
 import datetime
 from empreinte_digitale.empreinte_functions import create_empreinte
-from Cryptodome.PublicKey import RSA
+from Crypto.PublicKey import RSA
 import binascii
 
 
