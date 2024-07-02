@@ -116,7 +116,7 @@ def login():
                 print(user[2],"passed password is :",bpassword)
                 print("invalid password hash")
         else:
-            flash('Invalid username or password. Please try again.', 'danger')
+            flash('Invalid user imprint, this user is not elligible to login. Please try again.', 'danger')
     return render_template('login.html')
 
 @app.route('/transaction', methods=['GET','POST'])
